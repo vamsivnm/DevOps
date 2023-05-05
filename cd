@@ -1,0 +1,35 @@
+pipeline {
+    agent {
+      label {
+             label "slave"
+      }
+    }
+
+    stages {
+        stage('Stop_process') {
+            steps {
+                sh '''
+                PID=$(ps -ef | grep -i tomcat | grep -i java | awk '{print $2}')
+                sudo kill -9 $PID
+                '''
+            }
+        }
+                
+        stage('download_artifact') {
+            steps {
+                sh """
+                sudo aws s3 cp s3://bucketvv/webapp.war /opt/tomcat9/webapps/
+                """
+            }
+        }
+                
+        stage('start_tomcat') {
+            steps {
+                sh """
+                sudo sh /opt/tomcat9/bin/startup.sh
+                """
+            }
+                
+        }
+    }
+}
